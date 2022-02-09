@@ -1,0 +1,102 @@
+---
+title: "Linear Regression - Credit Card Purchases"
+author: "Christian Thomas Schmidt"
+date: "2/8/2022"
+output: html_document
+---
+
+# Linear Regression Project - Credit Card Purchases
+
+## Preview
+
+In this project, I will be analyzing my spending over the last 7 months.
+The goal of this project is to understand If I am spending more or less 
+over time and what a linear regression model predicts my spending will be next month.<br></br>
+
+The data set I am using is from own card activity. 
+
+## Libraries
+
+The libraries I will be using are as follows:
+
+```{r setup, include=TRUE,warning=FALSE,results=FALSE,message=FALSE}
+
+library(tidyverse)
+library(lubridate)
+
+
+```
+
+```{r hidden setwd, include=FALSE,}
+setwd("C:/Users/cschm/OneDrive/Desktop/Data Science Projects/Linear Regression/Credit Card Information")
+```
+
+
+## Data Exploration
+
+I will first want to see a quick overview of the data
+
+```{r download and analyze data, echo=TRUE,results=FALSE,warning=FALSE,message=FALSE}
+
+# Download data
+new_df <- read_csv('credit_card_purchases.csv')
+
+```
+
+```{r summary, include=TRUE,warning=FALSE}
+
+# summary of data frame and head()
+dim(new_df)
+str(new_df)
+```
+
+Looking at the data, I can see that data consists of 6 different columns.<p>
+<ul>
+  <li>Transaction Date</li>
+  <li>Post Date</li>
+  <li>Description</li>
+  <li>Category</li>
+  <li>Type</li>
+  <li>Amount</li>
+</ul><p>
+
+I want to transform this data to make it easier for me to run my model.<p>
+
+Given that I am only interested in what day the transaction was, the category of purchase and the amount the purchase was, 
+I will remove Post Date, Description, and Type from the data frame.<p> 
+
+I also want to change the data type for both "Category" and "Transaction Date".
+I will change the data type of Category from character to non-ordinal factor and "Transaction Date" into date format.<p>
+
+I also don't care what day of the month I made a purchase, but rather what <i>month</i> I made that purchase and what year.
+I will mutate "Transaction Date" into two new columns, "Year" and "Month"
+
+```{r updated df, echo=TRUE,results=TRUE,warning=FALSE,message=FALSE}
+
+df <- new_df %>%
+  select(`Transaction Date`,Category,Amount) %>%
+  mutate(Date = lubridate::mdy(`Transaction Date`),.before = Category) %>%
+  mutate(Month = lubridate::month(Date,label = TRUE, abbr = TRUE),.after = Date) %>%
+  mutate(Year = lubridate::year(Date),.after = Date) %>%
+  group_by(Date) %>%
+  select(-`Transaction Date`)
+
+# "Category" is now a factor
+df$Category <- factor(df$Category)
+unique(df$Category)
+
+head(df)
+
+```
+
+Before I build my model, I want to quickly examine which category is my most <b>expensive</b> category to-date.
+I do this by summarizing the amount for each category in an array. I noticed that some purchases are also listed under "NA" and I want to find out more about this category.
+
+
+
+```{r summarize data, echo=TRUE,results=TRUE,warning=FALSE,message=FALSE}
+
+df_summary <- df %>%
+  group_by(Category) %>%
+```
+
